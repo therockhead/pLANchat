@@ -48,7 +48,9 @@ class ChatClient:
 
         # Socket connection
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect(('127.0.0.1', 5555))
+        # self.sock.connect(('127.0.0.1', 5555))
+        self.sock.connect(('192.168.0.104', 5555))
+
 
         # Start receiving thread
         threading.Thread(target=self.receive_messages, daemon=True).start()
