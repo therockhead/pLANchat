@@ -1,6 +1,8 @@
 import socket
 import threading
+from cryptography.fernet import Fernet, InvalidToken
 import tkinter as tk
+from tkinter import simpledialog, messagebox
 from tkinter import scrolledtext, END
 import pickle
 from huffman import encode, decode
@@ -26,73 +28,112 @@ def ask_username():
     return getattr(popup, 'username', 'Anonymous')
 
 
+class LoginPopup:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("Secure Chat Login")
+        self.username = None
+        self.fernet = None
+
+        tk.Label(master, text="Username:").pack(pady=5)
+        self.username_entry = tk.Entry(master)
+        self.username_entry.pack()
+
+        tk.Label(master, text="Encryption Key:").pack(pady=5)
+        self.key_entry = tk.Entry(master, show='*')
+        self.key_entry.pack()
+
+        tk.Button(master, text="Connect", command=self.submit).pack(pady=10)
+
+    def submit(self):
+        username = self.username_entry.get()
+        key = self.key_entry.get()
+
+        try:
+            fernet = Fernet(key.encode())  
+        except Exception:
+            messagebox.showerror("Invalid Key", "Please enter a valid Fernet key.")
+            return
+
+        self.username = username
+        self.fernet = fernet
+        self.master.destroy()
+
+
+
 
 class ChatClient:
-    def __init__(self, master, username):
+    def __init__(self, master, username, fernet):
         self.master = master
-        self.username = username;
-        self.master.title(f"Chat - {self.username}")
+        self.username = username
+        self.fernet = fernet
 
-        # Chat window
-        self.chat_area = scrolledtext.ScrolledText(master, wrap=tk.WORD, width=50, height=20, state='disabled')
-        self.chat_area.grid(row=0, column=0, padx=10, pady=10, columnspan=2)
+        master.title(f"Secure Chat - {username}")
 
-        # Input field
+        # GUI layout
+        self.chat_area = tk.Text(master, state='disabled', width=50, height=20)
+        self.chat_area.pack(padx=10, pady=10)
+
         self.entry = tk.Entry(master, width=40)
-        self.entry.grid(row=1, column=0, padx=10, pady=5)
+        self.entry.pack(side=tk.LEFT, padx=10)
         self.entry.bind("<Return>", self.send_message)
 
-        # Send button
-        self.send_button = tk.Button(master, text="Send", command=self.send_message)
-        self.send_button.grid(row=1, column=1, padx=5)
+        tk.Button(master, text="Send", command=self.send_message).pack(side=tk.LEFT)
 
-        # Socket connection
+        # Socket
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # self.sock.connect(('127.0.0.1', 5555))
-        self.sock.connect(('192.168.0.104', 5555))
-
-
-        # Start receiving thread
+        self.sock.connect(('127.0.0.1', 5555))  
         threading.Thread(target=self.receive_messages, daemon=True).start()
 
     def send_message(self, event=None):
         msg = self.entry.get()
         if msg:
             encoded_msg, code_map = encode(msg)
+            encrypted = self.fernet.encrypt(encoded_msg.encode())
+
             message_pack = {
-                'username': self.username,  # ✅ INCLUDE THIS
-                'data': encoded_msg,
+                'username': self.username,
+                'data': encrypted,
                 'code_map': code_map
             }
+
             self.sock.send(pickle.dumps(message_pack))
             self.display_message(f"You: {msg}")
-            self.entry.delete(0, END)
-
+            self.entry.delete(0, tk.END)
 
     def receive_messages(self):
         while True:
             try:
                 data = self.sock.recv(4096)
-                if not data:
-                    break
                 message_pack = pickle.loads(data)
-                decoded_msg = decode(message_pack['data'], message_pack['code_map'])
+
+                encrypted = message_pack['data']
+                decrypted = self.fernet.decrypt(encrypted).decode()
+                decoded = decode(decrypted, message_pack['code_map'])
                 sender = message_pack.get('username', 'Unknown')
-                self.display_message(f"{sender}: {decoded_msg}")
+
+                self.display_message(f"{sender}: {decoded}")
+            except InvalidToken:
+                self.display_message("[ERROR] Invalid decryption key!")
             except:
                 break
 
-
     def display_message(self, msg):
         self.chat_area.config(state='normal')
-        self.chat_area.insert(END, msg + '\n')
+        self.chat_area.insert(tk.END, msg + "\n")
         self.chat_area.config(state='disabled')
-        self.chat_area.see(END)
+        self.chat_area.see(tk.END)
+
 
 if __name__ == "__main__":
-    username = ask_username()
-    root = tk.Tk()
-    client = ChatClient(root, username)
-    client.username = username  # Attach to client instance
-    root.mainloop()
+    login_root = tk.Tk()
+    login_gui = LoginPopup(login_root)
+    login_root.mainloop()
+
+    # Launch chat only if valid
+    if login_gui.username and login_gui.fernet:
+        chat_root = tk.Tk()
+        app = ChatClient(chat_root, login_gui.username, login_gui.fernet)
+        chat_root.mainloop()
+
 

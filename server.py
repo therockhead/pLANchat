@@ -13,13 +13,13 @@ def handle_client(client, addr):
             if not data:
                 break
 
-            # 🔥 Extract message
+            # Extract message
             msg = pickle.loads(data)
             username = msg.get("username", "Unknown")
 
             print(f"[RECEIVED from {username}]")
 
-            # ✅ Broadcast to others
+            # Broadcast to others
             broadcast(data, client)
 
         except Exception as e:
