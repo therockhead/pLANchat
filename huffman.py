@@ -42,7 +42,9 @@ def encode(text):
     root = build_tree(text)
     code_map = build_codes(root)
     encoded_text = ''.join(code_map[c] for c in text)
-    return encoded_text, code_map
+    original_bits = len(text) * 8 # karon character one byte = 8 bits
+    compressed_bits = len(encoded_text)
+    return encoded_text, code_map, original_bits, compressed_bits
 
 def decode(encoded_text, code_map):
     rev_map = {v: k for k, v in code_map.items()}
