@@ -16,6 +16,15 @@ This is a secure, real-time messaging app built using Python that combines:
 
 ---
 
+## Inspiration
+![image](https://github.com/user-attachments/assets/ff571ff8-aba6-4032-b665-f9d9959b8510)
+
+A few years back, I watched a TV series named 'Silicon Valley'. In that series, Richard developed a loss less data compression algorithm and later he with his other friends, 
+started the company named 'Pied Piper'. The series focuses on Richard's and his team's struggles to maintain the company while facing competition from larger entities.
+
+That was my inspiration. I found data compression interesting. I wanted to make some projects implementing this kind of algorithms. And eventually, I got the chance to do something like that. :3 
+
+
 ##  DSA Concepts & Structures Used
 
 This project is deeply grounded in core **Data Structures and Algorithms**, applied through Huffman Coding and real-time encrypted communication.
