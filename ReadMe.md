@@ -17,6 +17,7 @@ This is a secure, real-time messaging app built using Python that combines:
 ---
 
 ## Inspiration
+
 ![image](https://github.com/user-attachments/assets/ff571ff8-aba6-4032-b665-f9d9959b8510)
 
 A few years back, I watched a TV series named 'Silicon Valley'. In that series, Richard developed a loss less data compression algorithm and later he with his other friends, 
