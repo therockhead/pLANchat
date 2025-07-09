@@ -65,6 +65,7 @@ This project is deeply grounded in core **Data Structures and Algorithms**, appl
 
 ---
 
+## File Structure
 ```bash
 huffman_chat_app/
 │
