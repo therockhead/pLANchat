@@ -106,7 +106,12 @@ huffman_chat_app/
 ---
 
 ## 🖼 Screenshots
+![alt text](images/image.png)
+*fig: chat_history.hufflog*
 
+![alt text](test-files/compression_chart.png)
+
+*fig: compression_chart.png*
 
 
 ---
