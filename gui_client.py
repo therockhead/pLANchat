@@ -1,109 +1,109 @@
+import customtkinter as ctk
 import socket
 import threading
-from cryptography.fernet import Fernet, InvalidToken
-import tkinter as tk
-from tkinter import simpledialog, messagebox
-from tkinter import scrolledtext, END
 import pickle
-from huffman import encode, decode
+from cryptography.fernet import Fernet, InvalidToken
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from huffman import encode, decode
 
 
-def ask_username():
-    popup = tk.Tk()
-    popup.title("Enter Username")
-    popup.geometry("300x100")
-
-    label = tk.Label(popup, text="Enter your username:")
-    label.pack(pady=5)
-
-    username_entry = tk.Entry(popup)
-    username_entry.pack()
-
-    def confirm():
-        popup.username = username_entry.get()
-        popup.destroy()
-
-    tk.Button(popup, text="OK", command=confirm).pack(pady=5)
-    popup.mainloop()
-    return getattr(popup, 'username', 'Anonymous')
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue") # can be green also :3
 
 
-class LoginPopup:
-    def __init__(self, master):
-        self.master = master
-        self.master.title("Secure Chat Login")
+class LoginPopup(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        self.title("Secure Chat Login")
+        self.geometry("800x650")
+        self.resizable(False, False)
+
         self.username = None
         self.fernet = None
 
-        tk.Label(master, text="Username:").pack(pady=5)
-        self.username_entry = tk.Entry(master)
-        self.username_entry.pack()
+        ctk.CTkLabel(self, text="Username:").pack(pady=(15, 5))
+        self.username_entry = ctk.CTkEntry(self)
+        self.username_entry.pack(padx=20)
 
-        tk.Label(master, text="Encryption Key:").pack(pady=5)
-        self.key_entry = tk.Entry(master, show='*')
-        self.key_entry.pack()
+        ctk.CTkLabel(self, text="Encryption Key:").pack(pady=(15, 5))
+        self.key_entry = ctk.CTkEntry(self, show='*')
+        self.key_entry.pack(padx=20)
 
-        tk.Button(master, text="Connect", command=self.submit).pack(pady=10)
+        ctk.CTkButton(self, text="Connect", command=self.submit).pack(pady=20)
 
     def submit(self):
         username = self.username_entry.get()
         key = self.key_entry.get()
 
         try:
-            fernet = Fernet(key.encode())  
+            fernet = Fernet(key.encode())
         except Exception:
-            messagebox.showerror("Invalid Key", "Please enter a valid Fernet key.")
+            ctk.CTkMessagebox(title="Invalid Key", message="Please enter a valid Fernet key.", icon="cancel")
             return
 
         self.username = username
         self.fernet = fernet
-        self.master.destroy()
+        self.destroy()
 
 
-class ChatClient:
-    def __init__(self, master, username, fernet):
-        self.master = master
+class ChatClient(ctk.CTk):
+    def __init__(self, username, fernet):
+        super().__init__()
         self.username = username
         self.fernet = fernet
 
-        master.title(f"Secure Chat - {username}")
+        self.title(f"Huffman Secure Chat - {username}")
+        self.geometry("800x650")
+        self.resizable(False, False)
 
-        # saving each line of chat
-        self.chat_log = []  # Store each line of chat
-
-        # Chart part
+        # Logs & chart tracking
+        self.chat_log = []
         self.orig_sizes = []
         self.comp_sizes = []
         self.msg_count = 0
 
-        # GUI layout
-        self.chat_area = tk.Text(master, state='disabled', width=50, height=20)
+        # Chat Display
+        self.chat_area = ctk.CTkTextbox(self, width=760, height=300, font=("Consolas", 14), state='disabled')
         self.chat_area.pack(padx=10, pady=10)
 
-        self.entry = tk.Entry(master, width=40)
-        self.entry.pack(side=tk.LEFT, padx=10)
+        # Message entry and buttons
+        entry_frame = ctk.CTkFrame(self)
+        entry_frame.pack(pady=5, padx=10, fill='x')
+
+        self.entry = ctk.CTkEntry(entry_frame, placeholder_text="Type your message...")
+        self.entry.pack(side=ctk.LEFT, fill='x', expand=True, padx=(0, 10), pady=5)
         self.entry.bind("<Return>", self.send_message)
 
-        # my buttons
-        tk.Button(master, text="Send", command=self.send_message).pack(side=tk.LEFT)
-        tk.Button(master, text="Save Chart", command=self.save_chart).pack(side=tk.LEFT, padx=5)
-        tk.Button(master, text="Save Log", command=self.save_log).pack(side=tk.LEFT)
+        ctk.CTkButton(entry_frame, text="Send", command=self.send_message).pack(side=ctk.LEFT)
 
-        # Bar Chart Setup
-        self.fig, self.ax = plt.subplots(figsize=(5, 2))
-        self.canvas = FigureCanvasTkAgg(self.fig, master)
+        # Buttons: Save chart & log
+        btn_frame = ctk.CTkFrame(self)
+        btn_frame.pack(pady=5)
+
+        ctk.CTkButton(btn_frame, text="Save Chart", command=self.save_chart).pack(side=ctk.LEFT, padx=10)
+        ctk.CTkButton(btn_frame, text="Save Log", command=self.save_log).pack(side=ctk.LEFT, padx=10)
+        # self.theme_toggle_btn = ctk.CTkButton(btn_frame, text="Toggle Theme", command=self.toggle_theme)
+        # self.theme_toggle_btn.pack(side=ctk.LEFT, padx=10)
+
+        # Compression chart
+        self.fig, self.ax = plt.subplots(figsize=(5.5, 2.5))
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self)
         self.canvas.get_tk_widget().pack(pady=10)
         self.ax.set_title("Compression Per Message")
         self.ax.set_ylabel("Bits")
         self.ax.set_xlabel("Messages")
 
-        # Socket
+        # Socket Setup
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect(('127.0.0.1', 5555))  
+        self.sock.connect(('127.0.0.1', 5555))
         threading.Thread(target=self.receive_messages, daemon=True).start()
 
+
+    # def toggle_theme(self):
+    #     current_mode = ctk.get_appearance_mode()
+    #     new_mode = "light" if current_mode == "dark" else "dark"
+    #     self.after_idle(lambda: ctk.set_appearance_mode(new_mode))
 
 
     def send_message(self, event=None):
@@ -115,16 +115,16 @@ class ChatClient:
             message_pack = {
                 'username': self.username,
                 'data': encrypted,
-                'code_map': code_map
+                'code_map': code_map,
+                'original_bits': original_bits,
+                'compressed_bits': compressed_bits
             }
 
             self.sock.send(pickle.dumps(message_pack))
             self.display_message(f"You: {msg}")
             self.display_message(f"[Compression] {original_bits} → {compressed_bits} bits | Saved: {100 - (compressed_bits * 100) // original_bits}%")
-            self.entry.delete(0, tk.END)
-
-            # update in the bar chart
-            self.update_chart(original_bits, compressed_bits) #updates the bar chart after every send operation :)
+            self.entry.delete(0, ctk.END)
+            self.update_chart(original_bits, compressed_bits)
 
     def receive_messages(self):
         while True:
@@ -151,10 +151,10 @@ class ChatClient:
 
     def display_message(self, msg):
         self.chat_log.append(msg)
-        self.chat_area.config(state='normal')
-        self.chat_area.insert(tk.END, msg + "\n")
-        self.chat_area.config(state='disabled')
-        self.chat_area.see(tk.END)
+        self.chat_area.configure(state='normal')
+        self.chat_area.insert(ctk.END, msg + "\n")
+        self.chat_area.configure(state='disabled')
+        self.chat_area.see(ctk.END)
 
     def update_chart(self, orig, comp):
         self.msg_count += 1
@@ -169,7 +169,6 @@ class ChatClient:
         self.ax.set_ylabel("Bits")
         self.ax.set_xlabel("Messages")
         self.ax.legend()
-
         self.canvas.draw()
 
     def save_chart(self):
@@ -185,15 +184,12 @@ class ChatClient:
         self.display_message(f"[INFO] Chat log saved as {filename}")
 
 
+
+# 🔰 Main App Entry Point
 if __name__ == "__main__":
-    login_root = tk.Tk()
-    login_gui = LoginPopup(login_root)
-    login_root.mainloop()
+    login = LoginPopup()
+    login.mainloop()
 
-    # Launch chat only if valid
-    if login_gui.username and login_gui.fernet:
-        chat_root = tk.Tk()
-        app = ChatClient(chat_root, login_gui.username, login_gui.fernet)
-        chat_root.mainloop()
-
-
+    if login.username and login.fernet:
+        app = ChatClient(login.username, login.fernet)
+        app.mainloop()
