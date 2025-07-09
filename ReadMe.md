@@ -18,8 +18,7 @@ This is a secure, real-time messaging app built using Python that combines:
 
 ## Inspiration
 
-![image](https://github.com/user-attachments/assets/ff571ff8-aba6-4032-b665-f9d9959b8510)
-
+![alt text](images/title.jpeg)
 A few years back, I watched a TV series named 'Silicon Valley'. In that series, Richard developed a loss less data compression algorithm and later he with his other friends, 
 started the company named 'Pied Piper'. The series focuses on Richard's and his team's struggles to maintain the company while facing competition from larger entities.
 
@@ -107,9 +106,8 @@ huffman_chat_app/
 ---
 
 ## 🖼 Screenshots
-![alt text](images/image.png)
-*fig: chat_history.hufflog*
-
+<!-- ![alt text](images/image.png)
+*fig: chat_history.hufflog* -->
 ![alt text](test-files/compression_chart.png)
 
 *fig: compression_chart.png*
