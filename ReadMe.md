@@ -19,6 +19,7 @@ This is a secure, real-time messaging app built using Python that combines:
 ## Inspiration
 
 ![alt text](images/title.jpeg)
+
 A few years back, I watched a TV series named 'Silicon Valley'. In that series, Richard developed a loss less data compression algorithm and later he with his other friends, 
 started the company named 'Pied Piper'. The series focuses on Richard's and his team's struggles to maintain the company while facing competition from larger entities.
 
