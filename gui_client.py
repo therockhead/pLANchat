@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from huffman import encode, decode
 
-
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue") # can be green also :3
 
@@ -185,7 +184,6 @@ class ChatClient(ctk.CTk):
 
 
 
-# 🔰 Main App Entry Point
 if __name__ == "__main__":
     login = LoginPopup()
     login.mainloop()
