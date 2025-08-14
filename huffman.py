@@ -29,12 +29,16 @@ def build_tree(text):
 def build_codes(node, current_code="", code_map=None):
     if code_map is None:
         code_map = {}
+        
     if node is None:
         return code_map
+    
     if node.char is not None:
         code_map[node.char] = current_code
+        
     build_codes(node.left, current_code + "0", code_map)
     build_codes(node.right, current_code + "1", code_map)
+    
     return code_map
 
 
